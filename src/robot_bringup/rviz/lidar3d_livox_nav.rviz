@@ -1,0 +1,449 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+  - Class: rviz_common/Views
+    Name: Views
+  - Class: rviz_common/Tool Properties
+    Name: Tool Properties
+Visualization Manager:
+  Class: ""
+  Displays:
+    # ==================== Basic Displays ====================
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Value: true
+      Cell Size: 1
+      Color: 160; 160; 164
+      Line Style:
+        Line Width: 0.03
+        Value: Lines
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+      Plane Cell Count: 50
+      Reference Frame: <Fixed Frame>
+
+    - Class: rviz_default_plugins/RobotModel
+      Name: RobotModel
+      Enabled: true
+      Value: true
+      Description Topic:
+        Value: /robot_description
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+      Visual Enabled: true
+      Collision Enabled: false
+      Alpha: 1.0
+      Mass Properties:
+        Inertia: false
+        Mass: false
+      TF Prefix: ""
+      Update Interval: 0
+
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Enabled: true
+      Value: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+      Marker Scale: 0.5
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+
+    # ==================== LaserScan Displays ====================
+    - Class: rviz_default_plugins/LaserScan
+      Name: LaserScan
+      Enabled: true
+      Topic:
+        Value: /scan
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Best Effort
+      Color Transformer: Intensity
+      Size (m): 0.03
+      Style: Points
+      Alpha: 1
+      Autocompute Intensity Bounds: true
+      Use Fixed Frame: true
+      Decay Time: 0
+
+    - Class: rviz_default_plugins/LaserScan
+      Name: LaserScan
+      Enabled: true
+      Topic:
+        Value: /scan_filtered
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Best Effort
+      Color Transformer: FlatColor
+      Color: 0; 255; 255
+      Size (m): 0.03
+      Style: Points
+      Alpha: 1
+      Use Fixed Frame: true
+      Decay Time: 0
+
+    # ==================== Map Display ====================
+    - Class: rviz_default_plugins/Map
+      Name: Map
+      Enabled: true
+      Topic:
+        Value: /map
+        Depth: 5
+        Durability Policy: Transient Local
+        Reliability Policy: Reliable
+      Alpha: 0.7
+      Color Scheme: map
+      Draw Behind: true
+      Update Topic:
+        Value: /map_updates
+
+    # ==================== AMCL Particle Swarm ====================
+    - Class: rviz_default_plugins/PoseArray
+      Name: Amcl Particle Swarm
+      Enabled: true
+      Topic:
+        Value: /particlecloud
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Best Effort
+      Shape:
+        Alpha: 0.7
+        Axes Length: 0.1
+        Axes Radius: 0.01
+        Color: 0; 255; 0
+        Head Length: 0.07
+        Head Radius: 0.03
+        Shaft Length: 0.23
+        Shaft Radius: 0.01
+        Value: Arrow (Flat)
+
+    # ==================== Global Planner (Path) ====================
+    - Class: rviz_default_plugins/Path
+      Name: Global Planner
+      Enabled: true
+      Topic:
+        Value: /plan
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+      Color: 0; 255; 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0.1
+      Pose Style: None
+      Head Diameter: 0.3
+      Head Length: 0.2
+      Length: 0.3
+      Line Style: Billboards
+      Line Width: 0.05
+      Radius: 0.03
+      Shaft Diameter: 0.1
+      Shaft Length: 0.1
+
+    # ==================== Controller (Local Path) ====================
+    - Class: rviz_default_plugins/Path
+      Name: Controller
+      Enabled: true
+      Topic:
+        Value: /local_plan
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+      Color: 255; 255; 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0.15
+      Pose Style: None
+      Line Style: Lines
+      Line Width: 0.03
+
+    # ==================== PointCloud2 Displays ====================
+    - Class: rviz_default_plugins/PointCloud2
+      Name: PointCloud2
+      Enabled: false
+      Topic:
+        Value: /livox/lidar
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Best Effort
+      Color Transformer: Intensity
+      Size (m): 0.02
+      Style: Points
+      Use Fixed Frame: true
+      Use rainbow: true
+      Alpha: 1
+
+    # ==================== Image Display (D455 Camera) ====================
+    - Class: rviz_default_plugins/Image
+      Name: Image
+      Enabled: true
+      Topic:
+        Value: /d455/d455/color/image_raw
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Best Effort
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Normalize Range: true
+
+    # ==================== Goal Point (PointStamped) ====================
+    - Class: rviz_default_plugins/PointStamped
+      Name: PointStamped
+      Enabled: true
+      Topic:
+        Value: /clicked_point
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+      Color: 255; 0; 255
+      History Length: 1
+      Radius: 0.2
+
+    # ==================== Navigation Path ====================
+    - Class: rviz_default_plugins/Path
+      Name: Path
+      Enabled: true
+      Topic:
+        Value: /received_global_plan
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+      Color: 0; 200; 0
+      Line Style: Lines
+      Line Width: 0.05
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0.05
+      Pose Style: None
+
+    # ==================== Slow Polygon Zone ====================
+    - Class: rviz_default_plugins/Polygon
+      Name: Slow_Polygon
+      Enabled: true
+      Topic:
+        Value: /speed_limit_zone
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+      Color: 255; 255; 0
+      Alpha: 0.5
+
+    # ==================== Virtual Obstacles ====================
+    - Class: rviz_default_plugins/PointCloud2
+      Name: virtual_obstacles
+      Enabled: false
+      Topic:
+        Value: /virtual_obstacles
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+      Color Transformer: FlatColor
+      Color: 255; 0; 0
+      Size (m): 0.1
+      Style: Spheres
+      Alpha: 0.8
+
+    # ==================== Additional PointCloud2 ====================
+    - Class: rviz_default_plugins/PointCloud2
+      Name: PointCloud2
+      Enabled: true
+      Topic:
+        Value: /cloud_map
+        Depth: 5
+        Durability Policy: Transient Local
+        Reliability Policy: Reliable
+      Color Transformer: AxisColor
+      Axis: Z
+      Size (m): 0.03
+      Style: Points
+      Alpha: 0.8
+
+    - Class: rviz_default_plugins/PointCloud2
+      Name: PointCloud2
+      Enabled: true
+      Topic:
+        Value: /local_grid_obstacle
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+      Color Transformer: FlatColor
+      Color: 255; 0; 0
+      Size (m): 0.05
+      Style: Points
+      Alpha: 1
+
+    # ==================== Costmap Displays ====================
+    - Class: rviz_default_plugins/Map
+      Name: Global Costmap
+      Enabled: true
+      Topic:
+        Value: /global_costmap/costmap
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+      Alpha: 0.3
+      Color Scheme: costmap
+      Draw Behind: false
+
+    - Class: rviz_default_plugins/Map
+      Name: Local Costmap
+      Enabled: true
+      Topic:
+        Value: /local_costmap/costmap
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+      Alpha: 0.3
+      Color Scheme: costmap
+      Draw Behind: false
+
+    # ==================== Robot Footprint ====================
+    - Class: rviz_default_plugins/Polygon
+      Name: Robot Footprint
+      Enabled: true
+      Topic:
+        Value: /local_costmap/published_footprint
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+      Color: 0; 170; 255
+      Alpha: 1.0
+
+    # ==================== Odometry Display ====================
+    - Class: rviz_default_plugins/Odometry
+      Name: Odometry
+      Enabled: true
+      Topic:
+        Value: /odom
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+      Angle Tolerance: 0.1
+      Position Tolerance: 0.1
+      Keep: 100
+      Shape:
+        Alpha: 1
+        Axes Length: 0.3
+        Axes Radius: 0.03
+        Color: 255; 25; 0
+        Head Length: 0.07
+        Head Radius: 0.03
+        Shaft Length: 0.23
+        Shaft Radius: 0.01
+        Value: Axes
+
+    # ==================== Goal Pose Display ====================
+    - Class: rviz_default_plugins/PoseWithCovariance
+      Name: Goal Pose
+      Enabled: true
+      Topic:
+        Value: /goal_pose
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+      Shape:
+        Alpha: 1
+        Axes Length: 1
+        Axes Radius: 0.1
+        Color: 255; 25; 0
+        Head Length: 0.3
+        Head Radius: 0.1
+        Shaft Length: 0.5
+        Shaft Radius: 0.05
+        Value: Arrow
+      Covariance:
+        Orientation:
+          Alpha: 0.5
+          Color: 255; 255; 127
+          Color Style: Unique
+          Frame: Local
+          Offset: 1
+          Scale: 1
+          Value: true
+        Position:
+          Alpha: 0.3
+          Color: 204; 51; 204
+          Scale: 1
+          Value: true
+        Value: true
+
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: map
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz_default_plugins/Interact
+      Hide Inactive Objects: true
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/FocusCamera
+    - Class: rviz_default_plugins/Measure
+      Line color: 128; 128; 0
+    - Class: rviz_default_plugins/SetInitialPose
+      Covariance x: 0.25
+      Covariance y: 0.25
+      Covariance yaw: 0.0685
+      Topic:
+        Value: /initialpose
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+    - Class: rviz_default_plugins/SetGoal
+      Topic:
+        Value: /goal_pose
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+    - Class: rviz_default_plugins/PublishPoint
+      Single click: true
+      Topic:
+        Value: /clicked_point
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 20
+      Enable Stereo Rendering:
+        Stereo Eye Separation: 0.06
+        Stereo Focal Distance: 1
+        Swap Stereo Eyes: false
+        Value: false
+      Focal Point:
+        X: 0
+        Y: 0
+        Z: 0
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.05
+      Invert Z Axis: false
+      Name: Current View
+      Near Clip Distance: 0.01
+      Pitch: 0.5
+      Target Frame: <Fixed Frame>
+      Value: Orbit (rviz_default_plugins)
+      Yaw: 0.5
+    Saved: ~
+Window Geometry:
+  Displays:
+    collapsed: false
+  Height: 1000
+  Width: 1600
+  X: 100
+  Y: 100
+  Image:
+    collapsed: false

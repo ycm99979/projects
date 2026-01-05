@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!--
+============================================================================
+Mobile Manipulator USBCAN Hardware Version (Arm + Gripper + Mobile Base)
+============================================================================
+
+USBCAN 기반 통합 하드웨어용 URDF
+- Arm: MyActuator RMD 모터 4개 (USBCAN-UC12, libusb)
+- Gripper: Dynamixel via OpenCR (Serial)
+- Mobile Base: MD 4WD Motor Driver (2x Serial)
+
+[사용법]
+xacro mobile_manipulator_usbcan_hardware.xacro \
+  can_channel:=0 \
+  baudrate:=1000000 \
+  gripper_port:=/dev/ttyACM0 \
+  port_front:=/dev/ttyUSB0 \
+  port_rear:=/dev/ttyUSB1
+
+============================================================================
+-->
+<robot name="frbot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ================================================================== -->
+  <!-- Arguments                                                          -->
+  <!-- ================================================================== -->
+
+  <!-- Arm (MyActuator RMD via USBCAN-UC12) -->
+  <xacro:arg name="can_channel" default="0"/>
+  <xacro:arg name="baudrate" default="1000000"/>
+  <xacro:arg name="motor1_id" default="1"/>
+  <xacro:arg name="motor2_id" default="2"/>
+  <xacro:arg name="motor3_id" default="3"/>
+  <xacro:arg name="motor4_id" default="4"/>
+  <xacro:arg name="auto_home" default="true"/>
+
+  <!-- Gripper (Dynamixel via OpenCR Serial) -->
+  <xacro:arg name="gripper_port" default="/dev/ttyACM0"/>
+  <xacro:arg name="gripper_baudrate" default="115200"/>
+
+  <!-- Mobile Base (MD 4WD Motor Driver via Serial) -->
+  <xacro:arg name="port_front" default="/dev/ttyUSB0"/>
+  <xacro:arg name="port_rear" default="/dev/ttyUSB1"/>
+  <xacro:arg name="mobile_baudrate" default="19200"/>
+  <xacro:arg name="wheel_radius" default="0.098"/>
+  <xacro:arg name="wheel_separation" default="0.32"/>
+  <xacro:arg name="gear_ratio" default="15"/>
+  <xacro:arg name="poles" default="10"/>
+
+  <!-- ================================================================== -->
+  <!-- Robot Core (Mobile Base + Manipulator Arm)                         -->
+  <!-- ================================================================== -->
+  <xacro:include filename="$(find robot_description)/urdf/robot_core.xacro"/>
+
+  <!-- ================================================================== -->
+  <!-- ros2_control for USBCAN Hardware Integration                       -->
+  <!-- ================================================================== -->
+  <xacro:include filename="$(find robot_description)/urdf/ros2_control_mobile_manipulator_usbcan.urdf.xacro"/>
+  <xacro:ros2_control_mobile_manipulator_usbcan
+    can_channel="$(arg can_channel)"
+    baudrate="$(arg baudrate)"
+    motor1_id="$(arg motor1_id)"
+    motor2_id="$(arg motor2_id)"
+    motor3_id="$(arg motor3_id)"
+    motor4_id="$(arg motor4_id)"
+    auto_home="$(arg auto_home)"
+    gripper_port="$(arg gripper_port)"
+    gripper_baudrate="$(arg gripper_baudrate)"
+    port_front="$(arg port_front)"
+    port_rear="$(arg port_rear)"
+    mobile_baudrate="$(arg mobile_baudrate)"
+    wheel_radius="$(arg wheel_radius)"
+    wheel_separation="$(arg wheel_separation)"
+    gear_ratio="$(arg gear_ratio)"
+    poles="$(arg poles)"
+  />
+
+</robot>

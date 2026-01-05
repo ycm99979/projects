@@ -1,0 +1,117 @@
+# ============================================================================
+# MD Motor 4WD Controller Configuration (robot_localization용 - odom TF 비활성화)
+# ============================================================================
+#
+# robot_localization(EKF)과 함께 사용할 때의 컨트롤러 설정
+# 
+# [중요 변경사항]
+# - enable_odom_tf: false  ← EKF가 odom→base_link TF를 발행하므로 비활성화
+#
+# [TF 구조]
+# map → odom (SLAM/AMCL이 발행)
+# odom → base_link (robot_localization EKF가 발행)  ← 이것!
+# base_link → ... (robot_state_publisher가 발행)
+#
+# [토픽 흐름]
+# /diff_drive_controller/odom → robot_localization → /odometry/filtered
+#                                                  → odom→base_link TF
+#
+# ============================================================================
+
+# Controller Manager 설정
+controller_manager:
+  ros__parameters:
+    update_rate: 50  # Hz (20ms 주기)
+    
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    diff_drive_controller:
+      type: diff_drive_controller/DiffDriveController
+
+# Joint State Broadcaster 설정
+joint_state_broadcaster:
+  ros__parameters:
+    joints: []
+    extra_joints: []
+
+# Diff Drive Controller 설정
+diff_drive_controller:
+  ros__parameters:
+    # ================================================================
+    # 휠 설정 (4WD 스키드 스티어)
+    # ================================================================
+    left_wheel_names:
+      - front_left_wheel_joint
+      - rear_left_wheel_joint
+    
+    right_wheel_names:
+      - front_right_wheel_joint
+      - rear_right_wheel_joint
+    
+    wheels_per_side: 2
+
+    # ================================================================
+    # 로봇 기구학 파라미터
+    # [중요] md_4wd_hardware.yaml과 동일하게 설정!
+    # ================================================================
+    wheel_separation: 0.3
+    wheel_radius: 0.05
+    
+    wheel_separation_multiplier: 1.0
+    left_wheel_radius_multiplier: 1.0
+    right_wheel_radius_multiplier: 1.0
+
+    # ================================================================
+    # TF 프레임 설정
+    # ================================================================
+    odom_frame_id: odom
+    base_frame_id: base_footprint
+    
+    pose_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+    twist_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+    
+    open_loop: false
+    
+    # ================================================================
+    # ★★★ 핵심 설정: odom TF 비활성화 ★★★
+    # robot_localization(EKF)이 odom→base_link TF를 발행하므로
+    # diff_drive_controller는 TF를 발행하지 않음 (중복 방지)
+    # ================================================================
+    enable_odom_tf: false
+
+    # ================================================================
+    # 명령 속도 제한
+    # ================================================================
+    linear.x.has_velocity_limits: true
+    linear.x.has_acceleration_limits: true
+    linear.x.has_jerk_limits: false
+    linear.x.max_velocity: 1.0
+    linear.x.min_velocity: -1.0
+    linear.x.max_acceleration: 0.5
+    linear.x.min_acceleration: -0.5
+    
+    angular.z.has_velocity_limits: true
+    angular.z.has_acceleration_limits: true
+    angular.z.has_jerk_limits: false
+    angular.z.max_velocity: 2.0
+    angular.z.min_velocity: -2.0
+    angular.z.max_acceleration: 1.0
+    angular.z.min_acceleration: -1.0
+
+    # ================================================================
+    # 타임아웃 설정
+    # ================================================================
+    cmd_vel_timeout: 0.5
+    publish_rate: 50.0
+    publish_limited_velocity: true
+    publish_wheel_data: true
+    
+    # Stamped 메시지 사용 여부
+    use_stamped_vel: false
+
+    # ================================================================
+    # 추가 설정
+    # ================================================================
+    velocity_rolling_window_size: 10
+    preserve_turning_radius: true

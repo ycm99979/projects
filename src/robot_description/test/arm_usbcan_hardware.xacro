@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!--
+============================================================================
+Arm USBCAN Hardware Version (MyActuatorHardwareInterface)
+============================================================================
+
+USBCAN-UC12 (libusb) 기반 하드웨어용 arm URDF
+- robot_core.xacro: 로봇 기구학 (링크, 조인트)
+- ros2_control_arm_usbcan.urdf.xacro: USBCAN 하드웨어 인터페이스
+
+[사용법]
+xacro arm_usbcan_hardware.xacro can_channel:=0 baudrate:=1000000
+
+============================================================================
+-->
+<robot name="frbot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Arguments -->
+  <xacro:arg name="can_channel" default="0"/>
+  <xacro:arg name="baudrate" default="1000000"/>
+  <xacro:arg name="motor1_id" default="1"/>
+  <xacro:arg name="motor2_id" default="2"/>
+  <xacro:arg name="motor3_id" default="3"/>
+  <xacro:arg name="motor4_id" default="4"/>
+  <xacro:arg name="auto_home" default="true"/>
+  <xacro:arg name="gripper_port" default="none"/>
+  <xacro:arg name="gripper_baudrate" default="115200"/>
+
+  <!-- Robot core (mobile base + manipulator arm) -->
+  <xacro:include filename="$(find robot_description)/urdf/robot_core.xacro"/>
+
+  <!-- ros2_control for arm via USBCAN -->
+  <xacro:include filename="$(find robot_description)/urdf/ros2_control_arm_usbcan.urdf.xacro"/>
+  <xacro:ros2_control_arm_usbcan 
+    can_channel="$(arg can_channel)"
+    baudrate="$(arg baudrate)"
+    motor1_id="$(arg motor1_id)"
+    motor2_id="$(arg motor2_id)"
+    motor3_id="$(arg motor3_id)"
+    motor4_id="$(arg motor4_id)"
+    auto_home="$(arg auto_home)"
+    gripper_port="$(arg gripper_port)"
+    gripper_baudrate="$(arg gripper_baudrate)"
+  />
+
+</robot>

@@ -1,0 +1,74 @@
+# Multi-motor controllers configuration (4 motors)
+# For fr_arm robot with MyActuator RMD motors
+
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    forward_position_controller:
+      type: forward_command_controller/ForwardCommandController
+
+    joint_trajectory_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+# Joint State Broadcaster
+joint_state_broadcaster:
+  ros__parameters:
+    joints:
+      - joint_1
+      - joint_2
+      - joint_3
+      - joint_4
+    interfaces:
+      - position
+      - velocity
+      - effort
+
+# Forward Position Controller (simple position command)
+forward_position_controller:
+  ros__parameters:
+    joints:
+      - joint_1
+      - joint_2
+      - joint_3
+      - joint_4
+    interface_name: position
+
+# Joint Trajectory Controller (for trajectory following)
+joint_trajectory_controller:
+  ros__parameters:
+    joints:
+      - joint_1
+      - joint_2
+      - joint_3
+      - joint_4
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    allow_integration_in_goal_trajectories: true
+    state_publish_rate: 50.0
+
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0
+      
+      joint_1:
+        trajectory: 0.1
+        goal: 0.05
+      joint_2:
+        trajectory: 0.1
+        goal: 0.05
+      joint_3:
+        trajectory: 0.1
+        goal: 0.05
+      joint_4:
+        trajectory: 0.1
+        goal: 0.05

@@ -1,0 +1,15 @@
+/.claude
+/.vscode
+/COMPLETE_SETUP_README.md
+/JETSON_INSTALL_GUIDE.md
+/best.pt
+/build
+/can_usb.md
+/docs
+/install
+/install_jetson.sh
+/log
+/quick_install.sh
+/requirements.txt
+/reset_usbcan.sh
+/setup_complete_workspace.sh

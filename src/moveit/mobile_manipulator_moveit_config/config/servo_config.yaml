@@ -1,0 +1,57 @@
+###############################################
+# MoveIt Servo Configuration for Visual Servoing
+###############################################
+
+moveit_servo:
+  ## Properties of incoming commands
+  command_in_type: "speed_units"  # "unitless" or "speed_units"
+  scale:
+    linear: 0.3   # Max linear velocity (m/s)
+    rotational: 0.5  # Max rotational velocity (rad/s)
+
+  ## Properties of outgoing commands
+  publish_period: 0.02  # 50Hz - period for publishing commands
+  low_latency_mode: false  # Set to true for lower latency (experimental)
+  
+  ## Robot configuration
+  move_group_name: arm
+  planning_frame: arm_base_link
+  ee_frame_name: end_effector_link
+  robot_link_command_frame: end_effector_link
+
+  ## Incoming command topics
+  cartesian_command_in_topic: ~/delta_twist_cmds
+  joint_command_in_topic: ~/delta_joint_cmds
+  
+  ## Outgoing command topics
+  command_out_topic: /arm_controller/joint_trajectory
+  status_topic: ~/status
+  
+  ## Command type (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray)
+  command_out_type: trajectory_msgs/JointTrajectory
+
+  ## Collision checking
+  check_collisions: true
+  collision_check_rate: 10.0  # Hz
+
+  ## Singularity handling
+  lower_singularity_threshold: 17.0
+  hard_stop_singularity_threshold: 30.0
+  leaving_singularity_threshold_multiplier: 2.0
+
+  ## Joint limits
+  joint_limit_margins: [0.1, 0.1, 0.1, 0.1]  # radians
+
+  ## Smoothing filter (for jerky commands)
+  use_smoothing: true
+  smoothing_filter_plugin: "online_signal_smoothing::ButterworthFilterPlugin"
+  
+  ## Butterworth filter parameters
+  butterworth_filter_order: 2
+  butterworth_filter_cutoff_frequency: 5.0
+
+  ## Timeout for incoming commands
+  incoming_command_timeout: 0.2  # seconds
+
+  ## Override velocity scaling
+  override_velocity_scaling_factor: 0.0  # 0 = use default

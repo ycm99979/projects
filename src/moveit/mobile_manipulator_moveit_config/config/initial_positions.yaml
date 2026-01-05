@@ -1,0 +1,7 @@
+# Initial joint positions for the robot - Home pose (all zeros)
+initial_positions:
+  link2_to_link1: 0.0
+  link3_to_link2: 0.0
+  link4_to_link3: 0.0
+  gripper_to_link4: 0.0
+  gripper_left_joint: 0.0

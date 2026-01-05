@@ -1,0 +1,75 @@
+<!--
+  ============================================================================
+  MD Motor Hardware ros2_control 설정 예시
+  ============================================================================
+  
+  이 파일을 로봇의 URDF/xacro에 include하여 사용합니다.
+  
+  [사용법]
+  <xacro:include filename="$(find robot_hardware)/urdf/md_ros2_control.urdf.xacro"/>
+  <xacro:md_ros2_control/>
+  
+  ============================================================================
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ====================================================================== -->
+  <!-- MD Motor Hardware Interface 설정 매크로                                -->
+  <!-- ====================================================================== -->
+  <xacro:macro name="md_ros2_control" params="
+    port:=/dev/ttyMotor
+    baudrate:=57600
+    motor_id:=1
+    id_mdui:=184
+    id_mdt:=183
+    wheel_radius:=0.033
+    wheel_separation:=0.16
+    gear_ratio:=15
+    poles:=10
+    left_wheel_joint:=left_wheel_joint
+    right_wheel_joint:=right_wheel_joint
+  ">
+
+    <ros2_control name="md_motor_system" type="system">
+      <hardware>
+        <!-- MD Motor Hardware Interface 플러그인 -->
+        <plugin>md_hardware/MDMotorHardware</plugin>
+        
+        <!-- 시리얼 통신 파라미터 -->
+        <param name="port">${port}</param>
+        <param name="baudrate">${baudrate}</param>
+        <param name="motor_id">${motor_id}</param>
+        <param name="id_mdui">${id_mdui}</param>
+        <param name="id_mdt">${id_mdt}</param>
+        
+        <!-- 로봇 파라미터 -->
+        <param name="wheel_radius">${wheel_radius}</param>
+        <param name="wheel_separation">${wheel_separation}</param>
+        <param name="gear_ratio">${gear_ratio}</param>
+        <param name="poles">${poles}</param>
+      </hardware>
+      
+      <!-- 왼쪽 바퀴 조인트 -->
+      <joint name="${left_wheel_joint}">
+        <command_interface name="velocity">
+          <param name="min">-10</param>
+          <param name="max">10</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+      
+      <!-- 오른쪽 바퀴 조인트 -->
+      <joint name="${right_wheel_joint}">
+        <command_interface name="velocity">
+          <param name="min">-10</param>
+          <param name="max">10</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+    </ros2_control>
+
+  </xacro:macro>
+
+</robot>

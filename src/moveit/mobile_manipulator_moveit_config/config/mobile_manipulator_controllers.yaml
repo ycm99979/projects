@@ -1,0 +1,115 @@
+# ============================================================================
+# Mobile Manipulator Full Hardware Controllers
+# ============================================================================
+#
+# Arm + Gripper + Mobile Base 통합 컨트롤러 설정
+# - arm_controller: JointTrajectoryController (팔 4축)
+# - gripper_controller: GripperActionController (그리퍼)
+# - diff_drive_controller: DiffDriveController (4WD 모바일 베이스)
+#
+# ============================================================================
+
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # USBCAN 최대 ~125Hz 지원, 안전마진 적용
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    gripper_controller:
+      type: position_controllers/GripperActionController
+
+    diff_drive_controller:
+      type: diff_drive_controller/DiffDriveController
+
+
+# ============================================================================
+# Arm Controller (JointTrajectoryController)
+# ============================================================================
+arm_controller:
+  ros__parameters:
+    joints:
+      - link2_to_link1
+      - link3_to_link2
+      - link4_to_link3
+      - gripper_to_link4
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 100.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: true
+    open_loop_control: true
+    allow_nonzero_velocity_at_trajectory_end: true
+    allow_integration_in_goal_trajectories: true
+    interpolation_method: splines
+    start_with_holding: false
+    cmd_timeout: 0.0
+    constraints:
+      stopped_velocity_tolerance: 0.0
+      goal_time: 0.0
+
+
+# ============================================================================
+# Gripper Controller (GripperActionController)
+# ============================================================================
+gripper_controller:
+  ros__parameters:
+    joint: gripper_left_joint
+    action_monitor_rate: 20.0
+    goal_tolerance: 0.001
+    max_effort: 100.0
+    allow_stalling: false
+    stall_velocity_threshold: 0.001
+    stall_timeout: 1.0
+
+
+# ============================================================================
+# Diff Drive Controller (4WD Mobile Base)
+# ============================================================================
+diff_drive_controller:
+  ros__parameters:
+    # 4WD 바퀴 설정 (왼쪽/오른쪽 그룹)
+    left_wheel_names:
+      - front_left_wheel_joint
+      - rear_left_wheel_joint
+    right_wheel_names:
+      - front_right_wheel_joint
+      - rear_right_wheel_joint
+
+    # 로봇 기구학 파라미터
+    wheel_separation: 0.32
+    wheel_radius: 0.098
+
+    # 속도 제한
+    linear.x.has_velocity_limits: true
+    linear.x.max_velocity: 1.0
+    linear.x.min_velocity: -1.0
+    linear.x.has_acceleration_limits: true
+    linear.x.max_acceleration: 1.0
+    linear.x.min_acceleration: -1.0
+
+    angular.z.has_velocity_limits: true
+    angular.z.max_velocity: 2.0
+    angular.z.min_velocity: -2.0
+    angular.z.has_acceleration_limits: true
+    angular.z.max_acceleration: 2.0
+    angular.z.min_acceleration: -2.0
+
+    # 주행 설정
+    publish_rate: 50.0
+    odom_frame_id: odom
+    base_frame_id: base_link
+    pose_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+    twist_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+    open_loop: false
+    enable_odom_tf: false  # EKF (robot_localization) handles odom->base_link TF
+
+    # cmd_vel 타임아웃
+    cmd_vel_timeout: 0.5
+    use_stamped_vel: false

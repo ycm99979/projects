@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<robot name="frbot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- Include mobile base -->
+    <xacro:include filename="mobile_only/mobile_base.xacro"/>
+    
+    <!-- Include manipulator arm -->
+    <xacro:include filename="arm_only/manipulator_arm.xacro"/>
+
+    <!-- Connect arm to mobile base -->
+    <joint name="mobile_arm_joint" type="fixed">
+        <parent link="chassis_link"/>
+        <child link="arm_base_link"/>
+        <origin xyz="0.2 0.0 0.235" rpy="0 0 0"/>
+    </joint>
+
+</robot>

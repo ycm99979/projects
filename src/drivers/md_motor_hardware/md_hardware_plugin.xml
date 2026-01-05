@@ -1,0 +1,32 @@
+<!--
+  ============================================================================
+  MD Motor Hardware Interface Plugin Description
+  ============================================================================
+  
+  ros2_control이 이 플러그인을 찾아서 로드할 수 있게 해주는 XML 파일입니다.
+  
+  URDF에서 다음과 같이 참조합니다:
+  <ros2_control name="md_motor_system" type="system">
+    <hardware>
+      <plugin>md_hardware/MDMotorHardware</plugin>
+      ...
+    </hardware>
+  </ros2_control>
+  
+  ============================================================================
+-->
+<class_libraries>
+  <library path="md_4wd_hardware">
+    <class 
+      name="md_hardware/MD4WDHardware"
+      type="md_hardware::MD4WDHardware"
+      base_class_type="hardware_interface::SystemInterface">
+      <description>
+        MD Motor Driver 4WD Hardware Interface for ros2_control.
+        Controls 4 wheels individually using 2 MD dual-channel drivers on RS-485 bus.
+        Front Driver (ID=1): FL, FR wheels
+        Rear Driver (ID=2): RL, RR wheels
+      </description>
+    </class>
+  </library>
+</class_libraries>

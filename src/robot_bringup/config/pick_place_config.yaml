@@ -1,0 +1,73 @@
+# Configuration parameters for fr_arm pick and place system
+# This configuration is specifically tuned for the fr_arm robot with MyActuator RMD motors
+
+pick_place_controller:
+  ros__parameters:
+    # Height configurations (in meters) - adjusted for fr_arm workspace
+    approach_height: 0.25      # 접근 높이 (안전한 이동)
+    pick_height: 0.12          # 픽업 높이 (물체 접촉) - lowered for better contact
+    carrying_height: 0.30      # 운반 높이 (충돌 방지)
+    
+    # Fixed place position - optimized for fr_arm reach
+    place_x: 0.35              # 고정 배치 X 좌표 (fr_arm 작업 공간 내)
+    place_y: -0.25             # 고정 배치 Y 좌표 (fr_arm 작업 공간 내)
+    place_z: 0.15              # 고정 배치 Z 높이
+    place_rotation: 0.0        # 고정 배치 회전각 (라디안)
+    
+    # Safety parameters - fr_arm specific safe position
+    safe_position_x: 0.0       # 안전 위치 X (로봇 중심)
+    safe_position_y: 0.0       # 안전 위치 Y (로봇 중심)
+    safe_position_z: 0.35      # 안전 위치 Z (충분한 높이)
+    safe_orientation_x: 0.0    # 안전 자세 쿼터니언 X
+    safe_orientation_y: 0.0    # 안전 자세 쿼터니언 Y
+    safe_orientation_z: 0.0    # 안전 자세 쿼터니언 Z
+    safe_orientation_w: 1.0    # 안전 자세 쿼터니언 W
+    
+    # Planning parameters - conservative settings for hardware
+    planning_time: 8.0         # 계획 시간 제한 (초) - increased for complex planning
+    max_velocity_scaling: 0.3  # 최대 속도 스케일링 (conservative for hardware)
+    max_acceleration_scaling: 0.3  # 최대 가속도 스케일링 (conservative for hardware)
+    planning_attempts: 5       # 계획 시도 횟수
+    
+    # Gripper parameters - based on fr_arm gripper joint limits
+    gripper_open_position: 0.04   # 그리퍼 열림 위치 (최대 개방)
+    gripper_close_position: 0.0   # 그리퍼 닫힘 위치 (완전 닫힘)
+    gripper_planning_time: 3.0    # 그리퍼 계획 시간 제한
+    
+    # Topic names
+    target_topic: "/target_point"
+    status_topic: "/pick_place_status"
+    
+    # MoveIt configuration - fr_arm specific group names from SRDF
+    robot_description: "robot_description"
+    planning_group_arm: "arm"          # fr_arm planning group name (from SRDF)
+    planning_group_gripper: "gripper"  # gripper planning group name (from SRDF)
+    end_effector_link: "end_effector_link"  # end effector link name
+    
+    # Frame names
+    planning_frame: "base_link"        # 계획 프레임
+    pose_reference_frame: "base_link"  # 자세 참조 프레임
+    
+    # Workspace limits (meters) - fr_arm specific workspace
+    workspace_min_x: -0.5
+    workspace_max_x: 0.5
+    workspace_min_y: -0.5
+    workspace_max_y: 0.5
+    workspace_min_z: 0.0
+    workspace_max_z: 0.6
+    
+    # Tolerance parameters
+    position_tolerance: 0.01   # 위치 허용 오차 (미터)
+    orientation_tolerance: 0.1 # 자세 허용 오차 (라디안)
+    
+    # Logging level
+    log_level: "INFO"
+    
+    # Execution parameters
+    execution_timeout: 30.0    # 실행 타임아웃 (초)
+    
+    # Collision checking
+    collision_checking: true   # 충돌 검사 활성화
+    
+    # Joint state monitoring
+    joint_state_timeout: 1.0   # 관절 상태 타임아웃 (초)

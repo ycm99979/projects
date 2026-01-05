@@ -1,0 +1,35 @@
+planning_plugin: ompl_interface/OMPLPlanner
+# NOTE: In MoveIt2 Humble, AddTimeOptimalParameterization is a request adapter
+request_adapters: "default_planner_request_adapters/ResolveConstraintFrames default_planner_request_adapters/FixWorkspaceBounds default_planner_request_adapters/FixStartStateBounds default_planner_request_adapters/FixStartStateCollision default_planner_request_adapters/FixStartStatePathConstraints default_planner_request_adapters/AddTimeOptimalParameterization"
+
+start_state_max_bounds_error: 0.1
+
+planner_configs:
+  RRTConnect:
+    type: geometric::RRTConnect
+    range: 0.0
+  RRT:
+    type: geometric::RRT
+    range: 0.0
+    goal_bias: 0.05
+  RRTstar:
+    type: geometric::RRTstar
+    range: 0.0
+    goal_bias: 0.05
+    delay_collision_checking: 1
+  PRM:
+    type: geometric::PRM
+    max_nearest_neighbors: 10
+  PRMstar:
+    type: geometric::PRMstar
+
+arm:
+  default_planner_config: RRTConnect
+  planner_configs:
+    - RRTConnect
+    - RRT
+    - RRTstar
+    - PRM
+    - PRMstar
+  projection_evaluator: joints(link2_to_link1,link3_to_link2)
+  longest_valid_segment_fraction: 0.01

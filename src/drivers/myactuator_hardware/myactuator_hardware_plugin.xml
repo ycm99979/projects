@@ -1,0 +1,11 @@
+<library path="myactuator_hardware">
+  <class name="myactuator_hardware/MyActuatorHardwareInterface"
+         type="myactuator_hardware::MyActuatorHardwareInterface"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      MyActuator RMD hardware interface using USBCAN-UC12 (libusb).
+      Direct USB communication without SocketCAN dependency.
+      Supports position, velocity, and effort control with integrated gripper.
+    </description>
+  </class>
+</library>

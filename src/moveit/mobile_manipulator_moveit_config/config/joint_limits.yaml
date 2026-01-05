@@ -1,0 +1,33 @@
+# ============================================================================
+# Joint Limits for Smooth Motion
+# ============================================================================
+# max_velocity: rad/s, max_acceleration: rad/s²
+# 부드러운 모션을 위해 가속도를 낮춤 (2.0 → 0.75 rad/s²)
+# ============================================================================
+
+joint_limits:
+  link2_to_link1:
+    has_velocity_limits: true
+    max_velocity: 1.2  # 약 69 deg/s (기존 1.5)
+    has_acceleration_limits: true
+    max_acceleration: 0.75  # 약 43 deg/s² (기존 2.0)
+  link3_to_link2:
+    has_velocity_limits: true
+    max_velocity: 1.2
+    has_acceleration_limits: true
+    max_acceleration: 0.75
+  link4_to_link3:
+    has_velocity_limits: true
+    max_velocity: 1.2
+    has_acceleration_limits: true
+    max_acceleration: 0.75
+  gripper_to_link4:
+    has_velocity_limits: true
+    max_velocity: 1.2
+    has_acceleration_limits: true
+    max_acceleration: 0.75
+  gripper_left_joint:
+    has_velocity_limits: true
+    max_velocity: 0.5
+    has_acceleration_limits: true
+    max_acceleration: 0.5

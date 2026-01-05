@@ -1,0 +1,172 @@
+<?xml version="1.0"?>
+<!--
+============================================================================
+Arm ros2_control - USBCAN-UC12 Hardware (MyActuatorHardwareInterface)
+============================================================================
+
+USBCAN-UC12 (libusb) 기반 하드웨어용 ros2_control 설정
+- 팔: MyActuator RMD 모터 4개 (USB-CAN 통신)
+- 그리퍼: Dynamixel via OpenCR (시리얼 통신) - 선택사항
+
+[사용법]
+<xacro:include filename="$(find robot_description)/urdf/ros2_control_arm_usbcan.urdf.xacro"/>
+<xacro:ros2_control_arm_usbcan can_channel="0" baudrate="1000000"/>
+
+============================================================================
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="ros2_control_arm_usbcan" params="
+    can_channel:=0
+    baudrate:=1000000
+    motor1_id:=1
+    motor2_id:=2
+    motor3_id:=3
+    motor4_id:=4
+    auto_home:=true
+    gripper_port:=none
+    gripper_baudrate:=115200
+  ">
+
+    <!-- Arm hardware interface using USBCAN-UC12 (libusb) -->
+    <ros2_control name="arm_usbcan_hardware_system" type="system">
+      <hardware>
+        <plugin>myactuator_hardware/MyActuatorHardwareInterface</plugin>
+        <param name="can_channel">${can_channel}</param>
+        <param name="baudrate">${baudrate}</param>
+        <param name="auto_home">${auto_home}</param>
+        <param name="cycle_time">20</param>
+        <xacro:if value="${gripper_port != 'none'}">
+          <param name="gripper_port">${gripper_port}</param>
+          <param name="gripper_baudrate">${gripper_baudrate}</param>
+        </xacro:if>
+      </hardware>
+
+      <!-- Joint 1: link2_to_link1 (base rotation) -->
+      <joint name="link2_to_link1">
+        <param name="actuator_id">${motor1_id}</param>
+        <param name="torque_constant">0.32</param>
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"/>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+        <state_interface name="effort"/>
+      </joint>
+
+      <!-- Joint 2: link3_to_link2 (shoulder) -->
+      <joint name="link3_to_link2">
+        <param name="actuator_id">${motor2_id}</param>
+        <param name="torque_constant">0.32</param>
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"/>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+        <state_interface name="effort"/>
+      </joint>
+
+      <!-- Joint 3: link4_to_link3 (elbow) -->
+      <joint name="link4_to_link3">
+        <param name="actuator_id">${motor3_id}</param>
+        <param name="torque_constant">0.32</param>
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"/>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+        <state_interface name="effort"/>
+      </joint>
+
+      <!-- Joint 4: gripper_to_link4 (wrist) -->
+      <joint name="gripper_to_link4">
+        <param name="actuator_id">${motor4_id}</param>
+        <param name="torque_constant">0.32</param>
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"/>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+        <state_interface name="effort"/>
+      </joint>
+
+      <!-- Gripper joint (optional - only if gripper_port is set) -->
+      <xacro:if value="${gripper_port != 'none'}">
+        <joint name="gripper_left_joint">
+          <command_interface name="position"/>
+          <state_interface name="position">
+            <param name="initial_value">0.0</param>
+          </state_interface>
+          <state_interface name="velocity"/>
+        </joint>
+      </xacro:if>
+    </ros2_control>
+
+    <!-- Gripper joints - fake hardware (if no gripper_port) -->
+    <xacro:if value="${gripper_port == 'none'}">
+      <ros2_control name="gripper_mock_system" type="system">
+        <hardware>
+          <plugin>mock_components/GenericSystem</plugin>
+        </hardware>
+        <joint name="gripper_left_joint">
+          <command_interface name="position"/>
+          <state_interface name="position">
+            <param name="initial_value">0.0</param>
+          </state_interface>
+          <state_interface name="velocity"/>
+        </joint>
+      </ros2_control>
+    </xacro:if>
+
+    <!-- Gripper right joint (mimic) - always fake -->
+    <ros2_control name="gripper_mimic_system" type="system">
+      <hardware>
+        <plugin>mock_components/GenericSystem</plugin>
+      </hardware>
+      <joint name="gripper_right_joint">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+    </ros2_control>
+
+    <!-- Wheels - fake hardware -->
+    <ros2_control name="wheel_hardware_system" type="system">
+      <hardware>
+        <plugin>mock_components/GenericSystem</plugin>
+      </hardware>
+      <joint name="front_left_wheel_joint">
+        <command_interface name="velocity"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+      <joint name="front_right_wheel_joint">
+        <command_interface name="velocity"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+      <joint name="rear_left_wheel_joint">
+        <command_interface name="velocity"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+      <joint name="rear_right_wheel_joint">
+        <command_interface name="velocity"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+    </ros2_control>
+
+  </xacro:macro>
+
+</robot>

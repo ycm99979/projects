@@ -1,0 +1,92 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+    Property Tree Widget:
+      Expanded:
+        - /MotionPlanning1
+        - /RobotModel1
+  - Class: rviz_common/Help
+    Name: Help
+  - Class: rviz_common/Views
+    Name: Views
+Visualization Manager:
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Value: true
+      Cell Size: 0.5
+      Line Style:
+        Value: Lines
+      Plane Cell Count: 20
+    - Class: rviz_default_plugins/RobotModel
+      Name: RobotModel
+      Value: true
+      Description Topic:
+        Value: /robot_description
+      Visual Enabled: true
+      Collision Enabled: false
+      Update Interval: 0
+      Alpha: 1.0
+    - Class: moveit_rviz_plugin/MotionPlanning
+      Name: MotionPlanning
+      Planned Path:
+        Loop Animation: true
+        State Display Time: 0.05 s
+        Trajectory Topic: /display_planned_path
+      Planning Request:
+        Planning Group: arm
+        Interactive Marker Size: 0.2
+        Query Start State: false
+        Query Goal State: true
+      Planning Scene Topic: /monitored_planning_scene
+      Robot Description: robot_description
+      Scene Geometry:
+        Scene Alpha: 1
+      Scene Robot:
+        Robot Alpha: 0.5
+        Show Robot Collision: false
+        Show Robot Visual: true
+      Value: true
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Value: true
+      Show Names: false
+      Show Axes: true
+      Show Arrows: false
+      Marker Scale: 0.3
+    - Class: rviz_default_plugins/MarkerArray
+      Name: TargetMarker
+      Value: true
+      Topic:
+        Value: /target_marker
+    - Class: rviz_default_plugins/PointCloud2
+      Name: PointCloud
+      Value: false
+      Topic:
+        Value: /camera/camera/depth/color/points
+      Size (m): 0.01
+      Style: Points
+      Alpha: 1.0
+  Global Options:
+    Fixed Frame: base_link
+    Frame Rate: 30
+  Tools:
+    - Class: rviz_default_plugins/Interact
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 2.5
+      Focal Point:
+        X: 0.0
+        Y: 0.0
+        Z: 0.3
+      Name: Current View
+      Pitch: 0.5
+      Target Frame: base_link
+      Yaw: -0.8
+Window Geometry:
+  Height: 975
+  Width: 1200

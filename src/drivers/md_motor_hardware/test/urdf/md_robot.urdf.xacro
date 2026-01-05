@@ -1,0 +1,156 @@
+<?xml version="1.0"?>
+<!--
+  ============================================================================
+  MD Motor Hardware 테스트용 URDF
+  ============================================================================
+  
+  MD 모터 드라이버 Hardware Interface 테스트를 위한 간단한 URDF
+  
+  [구성]
+  - base_link: 로봇 베이스
+  - left_wheel_joint / right_wheel_joint: 좌/우 바퀴 조인트
+  - ros2_control: MDMotorHardware 플러그인
+  
+  ============================================================================
+-->
+<robot name="md_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ====================================================================== -->
+  <!-- 로봇 파라미터 -->
+  <!-- ====================================================================== -->
+  <xacro:property name="wheel_radius" value="0.033"/>
+  <xacro:property name="wheel_width" value="0.02"/>
+  <xacro:property name="wheel_separation" value="0.16"/>
+  <xacro:property name="base_length" value="0.2"/>
+  <xacro:property name="base_width" value="0.15"/>
+  <xacro:property name="base_height" value="0.05"/>
+
+  <!-- ====================================================================== -->
+  <!-- Base Link -->
+  <!-- ====================================================================== -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${base_length} ${base_width} ${base_height}"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0.2 0.2 0.8 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${base_length} ${base_width} ${base_height}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1.0"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01"/>
+    </inertial>
+  </link>
+
+  <!-- ====================================================================== -->
+  <!-- Left Wheel -->
+  <!-- ====================================================================== -->
+  <link name="left_wheel_link">
+    <visual>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <joint name="left_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="left_wheel_link"/>
+    <origin xyz="0 ${wheel_separation/2} 0" rpy="-${pi/2} 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- ====================================================================== -->
+  <!-- Right Wheel -->
+  <!-- ====================================================================== -->
+  <link name="right_wheel_link">
+    <visual>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <joint name="right_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="right_wheel_link"/>
+    <origin xyz="0 -${wheel_separation/2} 0" rpy="-${pi/2} 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- ====================================================================== -->
+  <!-- ros2_control: MD Motor Hardware Interface -->
+  <!-- ====================================================================== -->
+  <ros2_control name="md_motor_system" type="system">
+    <hardware>
+      <!-- MD Motor Hardware Interface 플러그인 -->
+      <plugin>md_hardware/MDMotorHardware</plugin>
+      
+      <!-- 시리얼 통신 파라미터 -->
+      <param name="port">/dev/ttyUSB0</param>
+      <param name="baudrate">19200</param>
+      <param name="motor_id">1</param>
+      <param name="id_mdui">184</param>
+      <param name="id_mdt">183</param>
+      
+      <!-- 로봇 파라미터 -->
+      <param name="wheel_radius">0.033</param>
+      <param name="wheel_separation">0.16</param>
+      <param name="gear_ratio">15</param>
+      <param name="poles">10</param>
+    </hardware>
+    
+    <!-- 왼쪽 바퀴 조인트 -->
+    <joint name="left_wheel_joint">
+      <command_interface name="velocity">
+        <param name="min">-10</param>
+        <param name="max">10</param>
+      </command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    
+    <!-- 오른쪽 바퀴 조인트 -->
+    <joint name="right_wheel_joint">
+      <command_interface name="velocity">
+        <param name="min">-10</param>
+        <param name="max">10</param>
+      </command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
+</robot>

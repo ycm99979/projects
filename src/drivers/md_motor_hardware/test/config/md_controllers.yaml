@@ -1,0 +1,63 @@
+# ============================================================================
+# MD Motor Hardware Controller 설정
+# ============================================================================
+# 
+# diff_drive_controller와 joint_state_broadcaster 설정
+# 
+# [사용법]
+# ros2 launch robot_hardware md_hardware.launch.py
+# 또는
+# ros2 control load_controller --set-state active diff_drive_controller
+# 
+# ============================================================================
+
+controller_manager:
+  ros__parameters:
+    update_rate: 50  # Hz (20ms 주기)
+    
+    # 사용할 컨트롤러 목록
+    diff_drive_controller:
+      type: diff_drive_controller/DiffDriveController
+    
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+# ============================================================================
+# Differential Drive Controller 설정
+# ============================================================================
+diff_drive_controller:
+  ros__parameters:
+    # 조인트 이름 (URDF와 일치해야 함)
+    left_wheel_names: ["left_wheel_joint"]
+    right_wheel_names: ["right_wheel_joint"]
+    
+    # 로봇 파라미터
+    wheel_separation: 0.16        # 바퀴 간격 (m)
+    wheel_radius: 0.033           # 바퀴 반경 (m)
+    
+    # 오도메트리 설정
+    odom_frame_id: odom
+    base_frame_id: base_link
+    
+    # TF 발행
+    enable_odom_tf: true
+    
+    # 토픽 설정
+    cmd_vel_timeout: 0.5          # 명령 타임아웃 (초)
+    publish_rate: 50.0            # 오도메트리 발행 주기 (Hz)
+    
+    # 열린 루프 모드 (피드백 없이 명령만 전송)
+    open_loop: false
+    
+    # 위치 피드백 사용
+    position_feedback: true
+    
+    # Stamped velocity 사용 안함 (geometry_msgs/Twist 사용)
+    use_stamped_vel: false
+
+# ============================================================================
+# Joint State Broadcaster 설정
+# ============================================================================
+joint_state_broadcaster:
+  ros__parameters:
+    use_local_topics: false

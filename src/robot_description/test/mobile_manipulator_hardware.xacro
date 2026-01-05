@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!--
+============================================================================
+Mobile Manipulator - Real Hardware Version
+============================================================================
+
+실제 하드웨어용 mobile manipulator URDF
+- robot_core.xacro: 로봇 기구학 (링크, 조인트)
+- ros2_control_hardware.urdf.xacro: 실제 하드웨어 인터페이스
+
+[사용법]
+xacro mobile_manipulator_hardware.xacro can_interface:=can0
+
+============================================================================
+-->
+<robot name="frbot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Arguments -->
+  <xacro:arg name="can_interface" default="can0"/>
+  <xacro:arg name="motor1_id" default="1"/>
+  <xacro:arg name="motor2_id" default="2"/>
+  <xacro:arg name="motor3_id" default="3"/>
+  <xacro:arg name="motor4_id" default="4"/>
+  <xacro:arg name="auto_home" default="true"/>
+
+  <!-- Robot core (mobile base + manipulator arm) -->
+  <xacro:include filename="$(find robot_description)/urdf/robot_core.xacro"/>
+
+  <!-- ros2_control for real hardware -->
+  <xacro:include filename="$(find robot_description)/urdf/ros2_control_hardware.urdf.xacro"/>
+  <xacro:ros2_control_hardware 
+    can_interface="$(arg can_interface)"
+    motor1_id="$(arg motor1_id)"
+    motor2_id="$(arg motor2_id)"
+    motor3_id="$(arg motor3_id)"
+    motor4_id="$(arg motor4_id)"
+    auto_home="$(arg auto_home)"
+  />
+
+</robot>

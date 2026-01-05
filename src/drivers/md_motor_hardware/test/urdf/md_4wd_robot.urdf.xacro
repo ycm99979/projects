@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+<!-- ============================================================================
+     MD Motor 4WD Robot URDF (Dual Serial Port)
+     ============================================================================
+     
+     4륜 스키드 스티어 로봇 URDF
+     - 2개의 USB-RS485 변환기 사용 (각 드라이버별 별도 포트)
+     - 4개의 개별 휠 조인트 정의
+     - ros2_control 통합
+     
+     ============================================================================ -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="md_4wd_robot">
+
+  <!-- ========================================================================
+       Arguments (YAML에서 전달받는 파라미터)
+       ======================================================================== -->
+  <!-- 시리얼 통신 (2개의 포트) -->
+  <xacro:arg name="port_front" default="/dev/ttyUSB0"/>
+  <xacro:arg name="port_rear" default="/dev/ttyUSB1"/>
+  <xacro:arg name="baudrate" default="19200"/>
+  
+  <!-- 모터 드라이버 ID -->
+  <xacro:arg name="front_driver_id" default="1"/>
+  <xacro:arg name="rear_driver_id" default="2"/>
+  <xacro:arg name="id_mdui" default="184"/>
+  <xacro:arg name="id_mdt" default="183"/>
+  
+  <!-- 로봇 기구학 (robot_description/mobile_base.xacro 기준) -->
+  <xacro:arg name="wheel_radius" default="0.098"/>
+  <xacro:arg name="wheel_separation" default="0.32"/>
+  <xacro:arg name="wheelbase" default="0.44"/>
+  
+  <!-- 모터/엔코더 -->
+  <xacro:arg name="gear_ratio" default="15"/>
+  <xacro:arg name="poles" default="10"/>
+  
+  <!-- Properties -->
+  <xacro:property name="wheel_radius" value="$(arg wheel_radius)"/>
+  <xacro:property name="wheel_separation" value="$(arg wheel_separation)"/>
+  <xacro:property name="wheelbase" value="$(arg wheelbase)"/>
+  <xacro:property name="wheel_width" value="0.04"/>
+
+  <!-- Materials -->
+  <material name="blue"><color rgba="0.0 0.0 0.8 1.0"/></material>
+  <material name="dark_gray"><color rgba="0.2 0.2 0.2 1.0"/></material>
+
+  <!-- Wheel Macro -->
+  <xacro:macro name="wheel" params="prefix x_pos y_pos">
+    <link name="${prefix}_wheel_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
+        <material name="dark_gray"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="0.5"/>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        <inertia ixx="0.00052" ixy="0" ixz="0" iyy="0.00052" iyz="0" izz="0.00063"/>
+      </inertial>
+    </link>
+    <joint name="${prefix}_wheel_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="${prefix}_wheel_link"/>
+      <origin xyz="${x_pos} ${y_pos} 0" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <dynamics damping="0.1" friction="0.1"/>
+    </joint>
+  </xacro:macro>
+
+  <!-- Base Link -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 ${wheel_radius + 0.02}" rpy="0 0 0"/>
+      <geometry><box size="${wheelbase * 0.8} ${wheel_separation * 0.7} 0.08"/></geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${wheel_radius + 0.02}" rpy="0 0 0"/>
+      <geometry><box size="${wheelbase * 0.8} ${wheel_separation * 0.7} 0.08"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="5.0"/>
+      <origin xyz="0 0 ${wheel_radius + 0.02}" rpy="0 0 0"/>
+      <inertia ixx="0.05" ixy="0" ixz="0" iyy="0.05" iyz="0" izz="0.1"/>
+    </inertial>
+  </link>
+
+  <!-- Footprint -->
+  <link name="base_footprint"/>
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- 4 Wheels -->
+  <xacro:wheel prefix="front_left" x_pos="${wheelbase/2}" y_pos="${wheel_separation/2 + wheel_width/2}"/>
+  <xacro:wheel prefix="front_right" x_pos="${wheelbase/2}" y_pos="${-wheel_separation/2 - wheel_width/2}"/>
+  <xacro:wheel prefix="rear_left" x_pos="${-wheelbase/2}" y_pos="${wheel_separation/2 + wheel_width/2}"/>
+  <xacro:wheel prefix="rear_right" x_pos="${-wheelbase/2}" y_pos="${-wheel_separation/2 - wheel_width/2}"/>
+
+  <!-- ros2_control Hardware Interface (Dual Serial Port) -->
+  <ros2_control name="md_4wd_hardware_interface" type="system">
+    <hardware>
+      <plugin>md_hardware/MD4WDHardware</plugin>
+      <!-- 시리얼 통신 파라미터 (2개 포트) -->
+      <param name="port_front">$(arg port_front)</param>
+      <param name="port_rear">$(arg port_rear)</param>
+      <param name="baudrate">$(arg baudrate)</param>
+      <!-- 모터 드라이버 ID -->
+      <param name="front_driver_id">$(arg front_driver_id)</param>
+      <param name="rear_driver_id">$(arg rear_driver_id)</param>
+      <param name="id_mdui">$(arg id_mdui)</param>
+      <param name="id_mdt">$(arg id_mdt)</param>
+      <!-- 로봇 기구학 파라미터 -->
+      <param name="wheel_radius">$(arg wheel_radius)</param>
+      <param name="wheel_separation">$(arg wheel_separation)</param>
+      <param name="wheelbase">$(arg wheelbase)</param>
+      <param name="gear_ratio">$(arg gear_ratio)</param>
+      <param name="poles">$(arg poles)</param>
+    </hardware>
+    
+    <!-- [0] Front Left - Front Driver CH1 -->
+    <joint name="front_left_wheel_joint">
+      <command_interface name="velocity"><param name="min">-50.0</param><param name="max">50.0</param></command_interface>
+      <state_interface name="position"/><state_interface name="velocity"/>
+    </joint>
+    <!-- [1] Front Right - Front Driver CH2 -->
+    <joint name="front_right_wheel_joint">
+      <command_interface name="velocity"><param name="min">-50.0</param><param name="max">50.0</param></command_interface>
+      <state_interface name="position"/><state_interface name="velocity"/>
+    </joint>
+    <!-- [2] Rear Left - Rear Driver CH1 -->
+    <joint name="rear_left_wheel_joint">
+      <command_interface name="velocity"><param name="min">-50.0</param><param name="max">50.0</param></command_interface>
+      <state_interface name="position"/><state_interface name="velocity"/>
+    </joint>
+    <!-- [3] Rear Right - Rear Driver CH2 -->
+    <joint name="rear_right_wheel_joint">
+      <command_interface name="velocity"><param name="min">-50.0</param><param name="max">50.0</param></command_interface>
+      <state_interface name="position"/><state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
+</robot>

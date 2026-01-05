@@ -1,0 +1,64 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # USBCAN 하드웨어 한계 (~125Hz), 안전마진 적용
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    arm_forward_controller:
+      type: forward_command_controller/ForwardCommandController
+
+    gripper_controller:
+      type: position_controllers/GripperActionController
+
+arm_controller:
+  ros__parameters:
+    joints:
+      - link2_to_link1
+      - link3_to_link2
+      - link4_to_link3
+      - gripper_to_link4
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 100.0  # update_rate와 동일
+    action_monitor_rate: 50.0
+    allow_partial_joints_goal: true
+    open_loop_control: true  # 피드백 체크 비활성화
+    allow_nonzero_velocity_at_trajectory_end: true
+    allow_integration_in_goal_trajectories: true
+    interpolation_method: splines
+    start_with_holding: false  # true → false (즉시 시작)
+    cmd_timeout: 0.0  # 명령 타임아웃 비활성화
+    constraints:
+      stopped_velocity_tolerance: 0.0
+      goal_time: 0.0
+
+arm_forward_controller:
+  ros__parameters:
+    joints:
+      - link2_to_link1
+      - link3_to_link2
+      - link4_to_link3
+      - gripper_to_link4
+    interface_name: position
+
+gripper_controller:
+  ros__parameters:
+    joint: gripper_left_joint
+    action_monitor_rate: 20.0
+    goal_tolerance: 0.001
+    max_effort: 100.0
+    allow_stalling: false
+    stall_velocity_threshold: 0.001
+    stall_timeout: 1.0
+
+# ============================================================================
+# NOTE: 통합 하드웨어 실행 시에는 mobile_manipulator_controllers.yaml 사용
+# ros2 launch robot_bringup mobile_manipulator_moveit_hardware.launch.py
+# ============================================================================

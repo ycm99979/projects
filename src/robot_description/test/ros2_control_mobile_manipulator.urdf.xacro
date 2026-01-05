@@ -1,0 +1,189 @@
+<?xml version="1.0"?>
+<!--
+============================================================================
+Mobile Manipulator ros2_control - Full Hardware Integration
+============================================================================
+
+통합 하드웨어 ros2_control 설정
+- 팔: MyActuator RMD 모터 4개 (CAN 통신)
+- 그리퍼: Dynamixel via OpenCR (시리얼 통신)
+- 모바일 베이스: MD 4WD 모터 드라이버 (2x 시리얼 통신)
+
+[사용법]
+<xacro:include filename="$(find robot_description)/urdf/ros2_control_mobile_manipulator.urdf.xacro"/>
+<xacro:ros2_control_mobile_manipulator
+  can_interface="can0"
+  gripper_port="/dev/ttyACM0"
+  port_front="/dev/ttyUSB0"
+  port_rear="/dev/ttyUSB1"
+/>
+
+============================================================================
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="ros2_control_mobile_manipulator" params="
+    can_interface:=can0
+    motor1_id:=1
+    motor2_id:=2
+    motor3_id:=3
+    motor4_id:=4
+    auto_home:=true
+    gripper_port:=/dev/ttyACM0
+    gripper_baudrate:=115200
+    port_front:=/dev/ttyUSB0
+    port_rear:=/dev/ttyUSB1
+    mobile_baudrate:=19200
+    wheel_radius:=0.098
+    wheel_separation:=0.32
+    gear_ratio:=15
+    poles:=10
+  ">
+
+    <!-- ================================================================== -->
+    <!-- Arm + Gripper Hardware Interface (MyActuator + Dynamixel)          -->
+    <!-- ================================================================== -->
+    <ros2_control name="arm_gripper_hardware_system" type="system">
+      <hardware>
+        <plugin>myactuator_hardware/ArmHardwareInterface</plugin>
+        <param name="ifname">${can_interface}</param>
+        <param name="auto_home">${auto_home}</param>
+        <param name="cycle_time">20</param>
+        <param name="timeout">1000</param>
+        <param name="gripper_port">${gripper_port}</param>
+        <param name="gripper_baudrate">${gripper_baudrate}</param>
+      </hardware>
+
+      <!-- Joint 1: link2_to_link1 (base rotation) -->
+      <joint name="link2_to_link1">
+        <param name="actuator_id">${motor1_id}</param>
+        <param name="torque_constant">0.32</param>
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"/>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+        <state_interface name="effort"/>
+      </joint>
+
+      <!-- Joint 2: link3_to_link2 (shoulder) -->
+      <joint name="link3_to_link2">
+        <param name="actuator_id">${motor2_id}</param>
+        <param name="torque_constant">0.32</param>
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"/>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+        <state_interface name="effort"/>
+      </joint>
+
+      <!-- Joint 3: link4_to_link3 (elbow) -->
+      <joint name="link4_to_link3">
+        <param name="actuator_id">${motor3_id}</param>
+        <param name="torque_constant">0.32</param>
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"/>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+        <state_interface name="effort"/>
+      </joint>
+
+      <!-- Joint 4: gripper_to_link4 (wrist) -->
+      <joint name="gripper_to_link4">
+        <param name="actuator_id">${motor4_id}</param>
+        <param name="torque_constant">0.32</param>
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"/>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+        <state_interface name="effort"/>
+      </joint>
+
+      <!-- Gripper joint (no actuator_id = gripper via serial) -->
+      <joint name="gripper_left_joint">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+    </ros2_control>
+
+    <!-- ================================================================== -->
+    <!-- Gripper Right Joint (Mimic) - Mock Hardware                        -->
+    <!-- ================================================================== -->
+    <ros2_control name="gripper_mimic_system" type="system">
+      <hardware>
+        <plugin>mock_components/GenericSystem</plugin>
+      </hardware>
+      <joint name="gripper_right_joint">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+    </ros2_control>
+
+    <!-- ================================================================== -->
+    <!-- Mobile Base Hardware Interface (MD 4WD Motor Driver)               -->
+    <!-- ================================================================== -->
+    <ros2_control name="mobile_base_hardware_system" type="system">
+      <hardware>
+        <plugin>md_hardware/MD4WDHardware</plugin>
+        <param name="port_front">${port_front}</param>
+        <param name="port_rear">${port_rear}</param>
+        <param name="baudrate">${mobile_baudrate}</param>
+        <param name="front_driver_id">1</param>
+        <param name="rear_driver_id">2</param>
+        <param name="id_mdui">184</param>
+        <param name="id_mdt">183</param>
+        <param name="wheel_radius">${wheel_radius}</param>
+        <param name="wheel_separation">${wheel_separation}</param>
+        <param name="gear_ratio">${gear_ratio}</param>
+        <param name="poles">${poles}</param>
+      </hardware>
+
+      <!-- Front Left Wheel -->
+      <joint name="front_left_wheel_joint">
+        <command_interface name="velocity"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <!-- Front Right Wheel -->
+      <joint name="front_right_wheel_joint">
+        <command_interface name="velocity"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <!-- Rear Left Wheel -->
+      <joint name="rear_left_wheel_joint">
+        <command_interface name="velocity"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <!-- Rear Right Wheel -->
+      <joint name="rear_right_wheel_joint">
+        <command_interface name="velocity"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+    </ros2_control>
+
+  </xacro:macro>
+
+</robot>

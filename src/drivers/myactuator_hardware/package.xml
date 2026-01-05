@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>myactuator_hardware</name>
+  <version>1.0.0</version>
+  <description>Multi-motor hardware interface for MyActuator RMD series with ros2_control and MoveIt2 support</description>
+  <maintainer email="your@email.com">Your Name</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- Core ROS 2 -->
+  <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>rclpy</depend>
+
+  <!-- ROS 2 Control -->
+  <depend>hardware_interface</depend>
+  <depend>pluginlib</depend>
+  <depend>controller_manager</depend>
+  <depend>ros2_control</depend>
+  <depend>ros2_controllers</depend>
+
+  <!-- Controllers -->
+  <depend>joint_state_broadcaster</depend>
+  <depend>joint_trajectory_controller</depend>
+  <depend>forward_command_controller</depend>
+
+  <!-- Robot Description -->
+  <depend>robot_state_publisher</depend>
+  <depend>xacro</depend>
+  <depend>urdf</depend>
+
+  <!-- MyActuator RMD driver -->
+  <depend>myactuator_rmd</depend>
+
+  <!-- Robot Description (for meshes and URDF components) -->
+  <depend>robot_description</depend>
+
+  <!-- Message types -->
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>control_msgs</depend>
+  <depend>trajectory_msgs</depend>
+  <depend>builtin_interfaces</depend>
+
+  <!-- Launch and tools -->
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+
+  <!-- CAN utilities (system dependency) -->
+  <exec_depend>can-utils</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+    <hardware_interface plugin="${prefix}/myactuator_hardware_plugin.xml"/>
+  </export>
+</package>

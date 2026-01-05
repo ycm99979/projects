@@ -1,0 +1,168 @@
+<?xml version="1.0"?>
+<!-- Multi-motor test URDF for 4 MyActuator RMD motors -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="multi_motor_test">
+    
+    <!-- Arguments -->
+    <xacro:arg name="can_interface" default="can0"/>
+    <xacro:arg name="motor1_id" default="1"/>
+    <xacro:arg name="motor2_id" default="2"/>
+    <xacro:arg name="motor3_id" default="3"/>
+    <xacro:arg name="motor4_id" default="4"/>
+    
+    <!-- Base link -->
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <box size="0.1 0.1 0.05"/>
+            </geometry>
+            <material name="gray">
+                <color rgba="0.5 0.5 0.5 1.0"/>
+            </material>
+        </visual>
+    </link>
+    
+    <!-- Joint 1 -->
+    <joint name="joint_1" type="revolute">
+        <parent link="base_link"/>
+        <child link="link_1"/>
+        <origin xyz="0 0 0.05" rpy="0 0 0"/>
+        <axis xyz="0 0 1"/>
+        <limit lower="-3.14159" upper="3.14159" effort="100" velocity="6.28"/>
+    </joint>
+    
+    <link name="link_1">
+        <visual>
+            <origin xyz="0 0 0.05" rpy="0 0 0"/>
+            <geometry>
+                <cylinder radius="0.03" length="0.1"/>
+            </geometry>
+            <material name="blue">
+                <color rgba="0.2 0.2 0.8 1.0"/>
+            </material>
+        </visual>
+    </link>
+    
+    <!-- Joint 2 -->
+    <joint name="joint_2" type="revolute">
+        <parent link="link_1"/>
+        <child link="link_2"/>
+        <origin xyz="0 0 0.1" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <limit lower="-1.57" upper="1.57" effort="100" velocity="6.28"/>
+    </joint>
+    
+    <link name="link_2">
+        <visual>
+            <origin xyz="0.05 0 0" rpy="0 1.5708 0"/>
+            <geometry>
+                <cylinder radius="0.025" length="0.1"/>
+            </geometry>
+            <material name="green">
+                <color rgba="0.2 0.8 0.2 1.0"/>
+            </material>
+        </visual>
+    </link>
+    
+    <!-- Joint 3 -->
+    <joint name="joint_3" type="revolute">
+        <parent link="link_2"/>
+        <child link="link_3"/>
+        <origin xyz="0.1 0 0" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <limit lower="-1.57" upper="1.57" effort="100" velocity="6.28"/>
+    </joint>
+    
+    <link name="link_3">
+        <visual>
+            <origin xyz="0.04 0 0" rpy="0 1.5708 0"/>
+            <geometry>
+                <cylinder radius="0.02" length="0.08"/>
+            </geometry>
+            <material name="red">
+                <color rgba="0.8 0.2 0.2 1.0"/>
+            </material>
+        </visual>
+    </link>
+    
+    <!-- Joint 4 -->
+    <joint name="joint_4" type="revolute">
+        <parent link="link_3"/>
+        <child link="link_4"/>
+        <origin xyz="0.08 0 0" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <limit lower="-1.57" upper="1.57" effort="100" velocity="6.28"/>
+    </joint>
+    
+    <link name="link_4">
+        <visual>
+            <origin xyz="0.03 0 0" rpy="0 1.5708 0"/>
+            <geometry>
+                <cylinder radius="0.015" length="0.06"/>
+            </geometry>
+            <material name="yellow">
+                <color rgba="0.8 0.8 0.2 1.0"/>
+            </material>
+        </visual>
+    </link>
+    
+    <!-- ros2_control hardware interface -->
+    <ros2_control name="multi_motor_hardware" type="system">
+        <hardware>
+            <plugin>myactuator_hardware/MultiMotorHardwareInterface</plugin>
+            <param name="ifname">$(arg can_interface)</param>
+        </hardware>
+        
+        <joint name="joint_1">
+            <param name="actuator_id">$(arg motor1_id)</param>
+            <param name="torque_constant">0.32</param>
+            <command_interface name="position"/>
+            <command_interface name="velocity"/>
+            <command_interface name="effort"/>
+            <state_interface name="position">
+                <param name="initial_value">0.0</param>
+            </state_interface>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+        
+        <joint name="joint_2">
+            <param name="actuator_id">$(arg motor2_id)</param>
+            <param name="torque_constant">0.32</param>
+            <command_interface name="position"/>
+            <command_interface name="velocity"/>
+            <command_interface name="effort"/>
+            <state_interface name="position">
+                <param name="initial_value">0.0</param>
+            </state_interface>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+        
+        <joint name="joint_3">
+            <param name="actuator_id">$(arg motor3_id)</param>
+            <param name="torque_constant">0.32</param>
+            <command_interface name="position"/>
+            <command_interface name="velocity"/>
+            <command_interface name="effort"/>
+            <state_interface name="position">
+                <param name="initial_value">0.0</param>
+            </state_interface>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+        
+        <joint name="joint_4">
+            <param name="actuator_id">$(arg motor4_id)</param>
+            <param name="torque_constant">0.32</param>
+            <command_interface name="position"/>
+            <command_interface name="velocity"/>
+            <command_interface name="effort"/>
+            <state_interface name="position">
+                <param name="initial_value">0.0</param>
+            </state_interface>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+    </ros2_control>
+
+</robot>

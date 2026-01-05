@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<robot name="arm_standalone" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- Include the manipulator arm -->
+    <xacro:include filename="manipulator_arm.xacro"/>
+
+    <!-- World link for MoveIt -->
+    <link name="world"/>
+    
+    <!-- Fixed joint to connect world to arm base -->
+    <joint name="world_to_arm_base" type="fixed">
+        <parent link="world"/>
+        <child link="arm_base_link"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+</robot>

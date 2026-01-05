@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Manipulator Control</title>
+    <script src="https://cdn.jsdelivr.net/npm/eventemitter2@6.4.9/lib/eventemitter2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/roslib@1.3.0/build/roslib.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 15px;
+        }
+        .container { max-width: 1800px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 15px; }
+        header h1 { font-size: 1.8em; color: #00d4ff; }
+        #connection-status {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-size: 0.85em; margin-top: 8px;
+        }
+        .connected { background: #00c853; }
+        .disconnected { background: #ff1744; }
+
+        /* Camera Row - 3 cameras side by side */
+        .camera-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .camera-panel {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px; padding: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .camera-panel h3 {
+            color: #00d4ff; margin-bottom: 8px; font-size: 0.95em;
+            text-align: center;
+        }
+        .camera-container { text-align: center; }
+        .camera-feed {
+            width: 100%; height: 400px; object-fit: contain;
+            border-radius: 8px; background: #000;
+        }
+
+        /* Main Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        .panel {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px; padding: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .panel h2 {
+            color: #00d4ff; margin-bottom: 10px; font-size: 1em;
+            border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px;
+        }
+
+        /* Buttons */
+        .btn-group { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+        .btn {
+            padding: 8px 14px; border: none; border-radius: 6px;
+            cursor: pointer; font-size: 0.85em; font-weight: bold; transition: all 0.2s;
+            user-select: none;
+        }
+        .btn-sm { padding: 5px 10px; font-size: 0.75em; }
+        .btn-lg { padding: 12px 20px; font-size: 1em; min-width: 50px; }
+        .btn-primary { background: linear-gradient(145deg, #00d4ff, #0099cc); color: #fff; }
+        .btn-success { background: linear-gradient(145deg, #00c853, #009624); color: #fff; }
+        .btn-danger { background: linear-gradient(145deg, #ff1744, #d50000); color: #fff; }
+        .btn-warning { background: linear-gradient(145deg, #ff9100, #ff6d00); color: #fff; }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.3); }
+        .btn:active { transform: translateY(0); }
+
+        /* Joystick */
+        .joystick-container { display: flex; justify-content: center; height: 140px; }
+        #joystick {
+            width: 130px; height: 130px;
+            background: radial-gradient(circle, #2a2a4a 0%, #1a1a2e 100%);
+            border-radius: 50%; position: relative; border: 3px solid #00d4ff;
+        }
+        #joystick-handle {
+            width: 45px; height: 45px;
+            background: linear-gradient(145deg, #00d4ff, #0099cc);
+            border-radius: 50%; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); cursor: grab;
+        }
+        .velocity-display { text-align: center; margin-top: 8px; font-family: monospace; font-size: 0.8em; }
+
+        /* Joint Teleop */
+        .joint-row {
+            display: flex; align-items: center; gap: 6px;
+            margin-bottom: 6px; padding: 6px;
+            background: rgba(0,0,0,0.2); border-radius: 6px;
+        }
+        .joint-row label { width: 70px; font-size: 0.8em; color: #aaa; }
+        .joint-row .value { width: 60px; font-family: monospace; color: #00d4ff; font-size: 0.85em; }
+        .joint-btn {
+            width: 36px; height: 36px; font-size: 1.2em; font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Input */
+        .input-group { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+        .input-group label { display: flex; flex-direction: column; flex: 1; min-width: 60px; font-size: 0.85em; }
+        .input-group input {
+            padding: 6px; border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 4px; background: rgba(255,255,255,0.1);
+            color: #fff; font-size: 0.85em; margin-top: 3px;
+        }
+
+        /* Robot State Viewer */
+        .robot-state-panel { grid-column: span 1; }
+        #robot-viewer {
+            width: 100%; height: 250px;
+            background: rgba(0,0,0,0.3); border-radius: 8px;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+        .urdf-info {
+            padding: 8px; font-size: 0.75em; font-family: monospace;
+            overflow-y: auto; flex: 1;
+        }
+        .urdf-info .link-item {
+            padding: 3px 6px; margin: 2px 0;
+            background: rgba(0,212,255,0.1); border-radius: 4px;
+            border-left: 3px solid #00d4ff;
+        }
+
+        /* Status */
+        .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .status-item { background: rgba(0,0,0,0.2); padding: 6px; border-radius: 6px; }
+        .status-item label { font-size: 0.7em; color: #888; }
+        .status-item .value { font-family: monospace; font-size: 0.9em; color: #00d4ff; }
+
+        /* Log */
+        #log {
+            background: rgba(0,0,0,0.3); border-radius: 6px; padding: 6px;
+            height: 100px; overflow-y: auto; font-family: monospace; font-size: 0.75em;
+        }
+        .log-entry { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .log-info { color: #00d4ff; }
+        .log-success { color: #00c853; }
+        .log-error { color: #ff1744; }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .grid { grid-template-columns: repeat(2, 1fr); }
+            .camera-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Mobile Manipulator Control</h1>
+            <div id="connection-status" class="disconnected">Disconnected</div>
+        </header>
+
+        <!-- Camera Row -->
+        <div class="camera-row">
+            <div class="camera-panel">
+                <h3>📷 D405 (Gripper)</h3>
+                <div class="camera-container">
+                    <img id="d405-feed" class="camera-feed" src="" alt="D405 Camera">
+                </div>
+            </div>
+            <div class="camera-panel">
+                <h3>🎯 YOLO Detection</h3>
+                <div class="camera-container">
+                    <img id="yolo-feed" class="camera-feed" src="" alt="YOLO Detection">
+                </div>
+            </div>
+            <div class="camera-panel">
+                <h3>📷 D455 (Navigation)</h3>
+                <div class="camera-container">
+                    <img id="d455-feed" class="camera-feed" src="" alt="D455 Camera">
+                </div>
+            </div>
+        </div>
+        <div class="btn-group" style="margin-bottom: 15px;">
+            <button class="btn btn-sm btn-primary" onclick="startAllCameras()">모든 카메라 시작</button>
+            <button class="btn btn-sm btn-danger" onclick="stopAllCameras()">모든 카메라 정지</button>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid">
+            <!-- Mobile Base -->
+            <div class="panel">
+                <h2>🚗 Mobile Base</h2>
+                <div class="joystick-container">
+                    <div id="joystick"><div id="joystick-handle"></div></div>
+                </div>
+                <div class="velocity-display">
+                    Linear: <span id="linear-vel">0.00</span> m/s | Angular: <span id="angular-vel">0.00</span> rad/s
+                </div>
+            </div>
+
+            <!-- Joint Teleop -->
+            <div class="panel">
+                <h2>🎮 Joint Teleop</h2>
+                <div class="joint-control">
+                    <div class="joint-row">
+                        <label>J1 (Base)</label>
+                        <span class="value" id="j1-val">0.000</span>
+                        <button class="btn btn-danger joint-btn" 
+                            onmousedown="startJog(0,-1)" onmouseup="stopJog()" onmouseleave="stopJog()"
+                            ontouchstart="startJog(0,-1)" ontouchend="stopJog()">−</button>
+                        <button class="btn btn-success joint-btn"
+                            onmousedown="startJog(0,1)" onmouseup="stopJog()" onmouseleave="stopJog()"
+                            ontouchstart="startJog(0,1)" ontouchend="stopJog()">+</button>
+                    </div>
+                    <div class="joint-row">
+                        <label>J2 (Shoulder)</label>
+                        <span class="value" id="j2-val">0.000</span>
+                        <button class="btn btn-danger joint-btn"
+                            onmousedown="startJog(1,-1)" onmouseup="stopJog()" onmouseleave="stopJog()"
+                            ontouchstart="startJog(1,-1)" ontouchend="stopJog()">−</button>
+                        <button class="btn btn-success joint-btn"
+                            onmousedown="startJog(1,1)" onmouseup="stopJog()" onmouseleave="stopJog()"
+                            ontouchstart="startJog(1,1)" ontouchend="stopJog()">+</button>
+                    </div>
+                    <div class="joint-row">
+                        <label>J3 (Elbow)</label>
+                        <span class="value" id="j3-val">0.000</span>
+                        <button class="btn btn-danger joint-btn"
+                            onmousedown="startJog(2,-1)" onmouseup="stopJog()" onmouseleave="stopJog()"
+                            ontouchstart="startJog(2,-1)" ontouchend="stopJog()">−</button>
+                        <button class="btn btn-success joint-btn"
+                            onmousedown="startJog(2,1)" onmouseup="stopJog()" onmouseleave="stopJog()"
+                            ontouchstart="startJog(2,1)" ontouchend="stopJog()">+</button>
+                    </div>
+                    <div class="joint-row">
+                        <label>J4 (Wrist)</label>
+                        <span class="value" id="j4-val">0.000</span>
+                        <button class="btn btn-danger joint-btn"
+                            onmousedown="startJog(3,-1)" onmouseup="stopJog()" onmouseleave="stopJog()"
+                            ontouchstart="startJog(3,-1)" ontouchend="stopJog()">−</button>
+                        <button class="btn btn-success joint-btn"
+                            onmousedown="startJog(3,1)" onmouseup="stopJog()" onmouseleave="stopJog()"
+                            ontouchstart="startJog(3,1)" ontouchend="stopJog()">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arm Poses & Gripper -->
+            <div class="panel">
+                <h2>🦾 Arm Control</h2>
+                <div class="btn-group" style="margin-bottom: 12px;">
+                    <button class="btn btn-primary" onclick="moveToReady()">Ready</button>
+                    <button class="btn btn-warning" onclick="moveToPlace()">Place</button>
+                    <button class="btn btn-danger" onclick="moveToHome()">Home</button>
+                </div>
+                <h3 style="margin: 12px 0 8px; font-size: 0.9em; color: #aaa;">Gripper</h3>
+                <div class="btn-group">
+                    <button class="btn btn-lg btn-success" onclick="gripperOpen()">열기</button>
+                    <button class="btn btn-lg btn-danger" onclick="gripperClose()">닫기</button>
+                </div>
+            </div>
+
+            <!-- Pick & Place -->
+            <div class="panel">
+                <h2>📦 Pick & Place</h2>
+                <div class="input-group">
+                    <label>X<input type="number" id="target-x" value="0.0" step="0.01"></label>
+                    <label>Y<input type="number" id="target-y" value="0.0" step="0.01"></label>
+                    <label>Z<input type="number" id="target-z" value="0.3" step="0.01"></label>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="sendTargetPoint()">목표 전송</button>
+                    <button class="btn btn-success" onclick="startPickPlace()">Pick & Place</button>
+                </div>
+            </div>
+
+            <!-- YOLO Detection -->
+            <div class="panel">
+                <h2>🎯 YOLO Detection</h2>
+                <div class="status-grid">
+                    <div class="status-item"><label>X (m)</label><div class="value" id="yolo-x">--</div></div>
+                    <div class="status-item"><label>Y (m)</label><div class="value" id="yolo-y">--</div></div>
+                    <div class="status-item"><label>Z (m)</label><div class="value" id="yolo-z">--</div></div>
+                    <div class="status-item"><label>Frame</label><div class="value" id="yolo-frame" style="font-size: 0.7em;">--</div></div>
+                </div>
+                <div style="margin-top: 8px; text-align: center;">
+                    <span style="font-size: 0.75em; color: #888;">Update: </span>
+                    <span id="yolo-update-time" style="font-size: 0.75em; color: #00d4ff;">--</span>
+                </div>
+                <div class="btn-group" style="margin-top: 8px;">
+                    <button class="btn btn-sm btn-primary" onclick="copyYoloToTarget()">좌표 복사 → Pick&Place</button>
+                </div>
+            </div>
+
+            <!-- Joint States -->
+            <div class="panel">
+                <h2>📊 Joint States</h2>
+                <div class="status-grid">
+                    <div class="status-item"><label>J1 (Base)</label><div class="value" id="joint1">--</div></div>
+                    <div class="status-item"><label>J2 (Shoulder)</label><div class="value" id="joint2">--</div></div>
+                    <div class="status-item"><label>J3 (Elbow)</label><div class="value" id="joint3">--</div></div>
+                    <div class="status-item"><label>J4 (Wrist)</label><div class="value" id="joint4">--</div></div>
+                    <div class="status-item"><label>Gripper L</label><div class="value" id="gripper-l">--</div></div>
+                    <div class="status-item"><label>Gripper R</label><div class="value" id="gripper-r">--</div></div>
+                </div>
+            </div>
+
+            <!-- Log -->
+            <div class="panel">
+                <h2>📝 Log</h2>
+                <div id="log"></div>
+            </div>
+
+            <!-- Robot State Viewer -->
+            <div class="panel robot-state-panel" style="grid-column: span 2;">
+                <h2>🤖 Robot Description</h2>
+                <div id="robot-viewer">
+                    <div class="urdf-info" id="urdf-info">
+                        <div style="color: #888; text-align: center; padding: 20px;">
+                            로봇 정보 로딩 중...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // ROS Connection
+        // ============================================================
+        const ros = new ROSLIB.Ros();
+        let connected = false;
+
+        ros.on('connection', () => {
+            connected = true;
+            document.getElementById('connection-status').textContent = 'Connected';
+            document.getElementById('connection-status').className = 'connected';
+            log('ROS 연결됨', 'success');
+            subscribeTopics();
+        });
+
+        ros.on('error', (error) => { log('ROS 오류: ' + error, 'error'); });
+        ros.on('close', () => {
+            connected = false;
+            document.getElementById('connection-status').textContent = 'Disconnected';
+            document.getElementById('connection-status').className = 'disconnected';
+            log('ROS 연결 끊김', 'error');
+        });
+
+        function connect() {
+            const host = window.location.hostname || 'localhost';
+            ros.connect(`ws://${host}:9090`);
+        }
+        connect();
+
+        // ============================================================
+        // Publishers
+        // ============================================================
+        const cmdVelPub = new ROSLIB.Topic({ ros, name: '/diff_drive_controller/cmd_vel_unstamped', messageType: 'geometry_msgs/Twist' });
+        const targetPointPub = new ROSLIB.Topic({ ros, name: '/target_point', messageType: 'geometry_msgs/PointStamped' });
+        const targetPositionPub = new ROSLIB.Topic({ ros, name: '/target_position', messageType: 'geometry_msgs/Point' });
+        const jointDeltaPub = new ROSLIB.Topic({ ros, name: '/arm_teleop/joint_delta', messageType: 'std_msgs/Float64MultiArray' });
+        const jointTrajPub = new ROSLIB.Topic({ ros, name: '/arm_controller/joint_trajectory', messageType: 'trajectory_msgs/JointTrajectory' });
+
+        // ============================================================
+        // Joint Teleop - Button Hold
+        // ============================================================
+        let jogInterval = null;
+        const jogStep = 0.02; // rad per step
+
+        function startJog(jointIdx, direction) {
+            stopJog();
+            // Immediate first command
+            sendJogCommand(jointIdx, direction);
+            // Then repeat
+            jogInterval = setInterval(() => {
+                sendJogCommand(jointIdx, direction);
+            }, 80);
+        }
+
+        function sendJogCommand(jointIdx, direction) {
+            const delta = [0, 0, 0, 0];
+            delta[jointIdx] = direction * jogStep;
+            jointDeltaPub.publish(new ROSLIB.Message({ data: delta }));
+        }
+
+        function stopJog() {
+            if (jogInterval) {
+                clearInterval(jogInterval);
+                jogInterval = null;
+            }
+        }
+
+        // ============================================================
+        // Arm Poses
+        // ============================================================
+        function sendArmTrajectory(positions, duration = 3) {
+            const traj = new ROSLIB.Message({
+                joint_names: ['link2_to_link1', 'link3_to_link2', 'link4_to_link3', 'gripper_to_link4'],
+                points: [{
+                    positions: positions,
+                    time_from_start: { sec: duration, nanosec: 0 }
+                }]
+            });
+            jointTrajPub.publish(traj);
+        }
+
+        function moveToReady() {
+            sendArmTrajectory([0.0, -0.69813, -2.35619, 0.05236]);
+            log('Ready 자세로 이동', 'info');
+        }
+
+        function moveToPlace() {
+            sendArmTrajectory([-1.815, 1.117, -0.820, 0.0]);
+            log('Place 자세로 이동', 'info');
+        }
+
+        function moveToHome() {
+            sendArmTrajectory([0.0, 0.0, 0.0, 0.0]);
+            log('Home 자세로 이동', 'info');
+        }
+
+        // ============================================================
+        // Gripper
+        // ============================================================
+        function callGripper(position) {
+            const client = new ROSLIB.ActionClient({
+                ros, serverName: '/gripper_controller/gripper_cmd',
+                actionName: 'control_msgs/action/GripperCommand'
+            });
+            const goal = new ROSLIB.Goal({
+                actionClient: client,
+                goalMessage: { command: { position: position, max_effort: 50.0 } }
+            });
+            goal.send();
+        }
+
+        function gripperOpen() { callGripper(0.019); log('그리퍼 열기', 'info'); }
+        function gripperClose() { callGripper(-0.01); log('그리퍼 닫기', 'info'); }
+
+        // ============================================================
+        // Pick & Place
+        // ============================================================
+        function sendTargetPoint() {
+            const x = parseFloat(document.getElementById('target-x').value);
+            const y = parseFloat(document.getElementById('target-y').value);
+            const z = parseFloat(document.getElementById('target-z').value);
+            targetPointPub.publish(new ROSLIB.Message({
+                header: { frame_id: 'd405_optical_frame' },
+                point: { x, y, z }
+            }));
+            log(`목표 전송: (${x.toFixed(3)}, ${y.toFixed(3)}, ${z.toFixed(3)})`, 'info');
+        }
+
+        function startPickPlace() {
+            const x = parseFloat(document.getElementById('target-x').value);
+            const y = parseFloat(document.getElementById('target-y').value);
+            const z = parseFloat(document.getElementById('target-z').value);
+            targetPositionPub.publish(new ROSLIB.Message({ x, y, z }));
+            log('Pick & Place 시작', 'info');
+        }
+
+        function copyYoloToTarget() {
+            if (window.lastYoloPoint) {
+                document.getElementById('target-x').value = window.lastYoloPoint.x.toFixed(3);
+                document.getElementById('target-y').value = window.lastYoloPoint.y.toFixed(3);
+                document.getElementById('target-z').value = window.lastYoloPoint.z.toFixed(3);
+                log('YOLO 좌표 복사됨', 'success');
+            } else {
+                log('YOLO 좌표 없음', 'error');
+            }
+        }
+
+        // ============================================================
+        // Joystick
+        // ============================================================
+        const joystick = document.getElementById('joystick');
+        const handle = document.getElementById('joystick-handle');
+        let isDragging = false;
+        let centerX, centerY, maxDist;
+
+        function initJoystick() {
+            const rect = joystick.getBoundingClientRect();
+            centerX = rect.width / 2;
+            centerY = rect.height / 2;
+            maxDist = rect.width / 2 - 22;
+        }
+
+        handle.addEventListener('mousedown', () => { isDragging = true; });
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const rect = joystick.getBoundingClientRect();
+            let x = e.clientX - rect.left - centerX;
+            let y = e.clientY - rect.top - centerY;
+            const dist = Math.sqrt(x*x + y*y);
+            if (dist > maxDist) { x = x * maxDist / dist; y = y * maxDist / dist; }
+            handle.style.left = (centerX + x) + 'px';
+            handle.style.top = (centerY + y) + 'px';
+            const linear = -y / maxDist * 0.5;
+            const angular = -x / maxDist * 1.0;
+            document.getElementById('linear-vel').textContent = linear.toFixed(2);
+            document.getElementById('angular-vel').textContent = angular.toFixed(2);
+            cmdVelPub.publish(new ROSLIB.Message({
+                linear: { x: linear, y: 0, z: 0 },
+                angular: { x: 0, y: 0, z: angular }
+            }));
+        });
+        document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                handle.style.left = '50%'; handle.style.top = '50%';
+                handle.style.transform = 'translate(-50%, -50%)';
+                document.getElementById('linear-vel').textContent = '0.00';
+                document.getElementById('angular-vel').textContent = '0.00';
+                cmdVelPub.publish(new ROSLIB.Message({
+                    linear: { x: 0, y: 0, z: 0 }, angular: { x: 0, y: 0, z: 0 }
+                }));
+            }
+        });
+
+        // Touch support for joystick
+        handle.addEventListener('touchstart', (e) => { isDragging = true; e.preventDefault(); });
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const touch = e.touches[0];
+            const rect = joystick.getBoundingClientRect();
+            let x = touch.clientX - rect.left - centerX;
+            let y = touch.clientY - rect.top - centerY;
+            const dist = Math.sqrt(x*x + y*y);
+            if (dist > maxDist) { x = x * maxDist / dist; y = y * maxDist / dist; }
+            handle.style.left = (centerX + x) + 'px';
+            handle.style.top = (centerY + y) + 'px';
+            const linear = -y / maxDist * 0.5;
+            const angular = -x / maxDist * 1.0;
+            document.getElementById('linear-vel').textContent = linear.toFixed(2);
+            document.getElementById('angular-vel').textContent = angular.toFixed(2);
+            cmdVelPub.publish(new ROSLIB.Message({
+                linear: { x: linear, y: 0, z: 0 },
+                angular: { x: 0, y: 0, z: angular }
+            }));
+        });
+        document.addEventListener('touchend', () => {
+            if (isDragging) {
+                isDragging = false;
+                handle.style.left = '50%'; handle.style.top = '50%';
+                document.getElementById('linear-vel').textContent = '0.00';
+                document.getElementById('angular-vel').textContent = '0.00';
+                cmdVelPub.publish(new ROSLIB.Message({
+                    linear: { x: 0, y: 0, z: 0 }, angular: { x: 0, y: 0, z: 0 }
+                }));
+            }
+        });
+
+        // ============================================================
+        // Subscribers
+        // ============================================================
+        function subscribeTopics() {
+            // Joint States
+            const jointStateSub = new ROSLIB.Topic({ ros, name: '/joint_states', messageType: 'sensor_msgs/JointState' });
+            jointStateSub.subscribe((msg) => {
+                const joints = {};
+                msg.name.forEach((name, i) => { joints[name] = msg.position[i]; });
+                if (joints['link2_to_link1'] !== undefined) {
+                    document.getElementById('joint1').textContent = joints['link2_to_link1'].toFixed(3);
+                    document.getElementById('j1-val').textContent = joints['link2_to_link1'].toFixed(3);
+                }
+                if (joints['link3_to_link2'] !== undefined) {
+                    document.getElementById('joint2').textContent = joints['link3_to_link2'].toFixed(3);
+                    document.getElementById('j2-val').textContent = joints['link3_to_link2'].toFixed(3);
+                }
+                if (joints['link4_to_link3'] !== undefined) {
+                    document.getElementById('joint3').textContent = joints['link4_to_link3'].toFixed(3);
+                    document.getElementById('j3-val').textContent = joints['link4_to_link3'].toFixed(3);
+                }
+                if (joints['gripper_to_link4'] !== undefined) {
+                    document.getElementById('joint4').textContent = joints['gripper_to_link4'].toFixed(3);
+                    document.getElementById('j4-val').textContent = joints['gripper_to_link4'].toFixed(3);
+                }
+                if (joints['gripper_left_joint'] !== undefined)
+                    document.getElementById('gripper-l').textContent = joints['gripper_left_joint'].toFixed(3);
+                if (joints['gripper_right_joint'] !== undefined)
+                    document.getElementById('gripper-r').textContent = joints['gripper_right_joint'].toFixed(3);
+            });
+
+            // Pick & Place Status
+            const statusSub = new ROSLIB.Topic({ ros, name: '/pick_place_status', messageType: 'std_msgs/String' });
+            statusSub.subscribe((msg) => { log(msg.data, 'info'); });
+
+            // Robot Description
+            const robotDescSub = new ROSLIB.Topic({ ros, name: '/robot_description', messageType: 'std_msgs/String' });
+            robotDescSub.subscribe((msg) => {
+                parseAndDisplayURDF(msg.data);
+            });
+
+            // Also try to get robot_description from parameter
+            const robotDescParam = new ROSLIB.Param({ ros, name: '/robot_description' });
+            robotDescParam.get((value) => {
+                if (value) {
+                    parseAndDisplayURDF(value);
+                }
+            });
+
+            // YOLO Target Point (10Hz throttle)
+            const targetPointSub = new ROSLIB.Topic({ 
+                ros, 
+                name: '/target_point', 
+                messageType: 'geometry_msgs/PointStamped',
+                throttle_rate: 100  // 10Hz
+            });
+            targetPointSub.subscribe((msg) => {
+                document.getElementById('yolo-x').textContent = msg.point.x.toFixed(3);
+                document.getElementById('yolo-y').textContent = msg.point.y.toFixed(3);
+                document.getElementById('yolo-z').textContent = msg.point.z.toFixed(3);
+                document.getElementById('yolo-frame').textContent = msg.header.frame_id;
+                document.getElementById('yolo-update-time').textContent = new Date().toLocaleTimeString();
+                
+                // Store for copy function
+                window.lastYoloPoint = msg.point;
+            });
+        }
+
+        // ============================================================
+        // URDF Parser & Display
+        // ============================================================
+        function parseAndDisplayURDF(urdfString) {
+            const urdfInfo = document.getElementById('urdf-info');
+            try {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(urdfString, 'text/xml');
+                const robot = xmlDoc.querySelector('robot');
+                
+                if (!robot) {
+                    urdfInfo.innerHTML = '<div style="color: #ff1744;">URDF 파싱 실패</div>';
+                    return;
+                }
+
+                const robotName = robot.getAttribute('name') || 'Unknown';
+                const links = xmlDoc.querySelectorAll('link');
+                const joints = xmlDoc.querySelectorAll('joint');
+
+                let html = `<div style="margin-bottom: 10px; color: #00d4ff; font-weight: bold;">
+                    🤖 ${robotName}
+                </div>`;
+                
+                html += `<div style="margin-bottom: 8px; color: #aaa;">
+                    Links: ${links.length} | Joints: ${joints.length}
+                </div>`;
+
+                html += '<div style="margin-bottom: 6px; color: #888; font-size: 0.9em;">📎 Links:</div>';
+                links.forEach(link => {
+                    const name = link.getAttribute('name');
+                    html += `<div class="link-item">${name}</div>`;
+                });
+
+                html += '<div style="margin: 10px 0 6px; color: #888; font-size: 0.9em;">🔗 Joints:</div>';
+                joints.forEach(joint => {
+                    const name = joint.getAttribute('name');
+                    const type = joint.getAttribute('type');
+                    const typeColor = type === 'revolute' ? '#00c853' : 
+                                     type === 'continuous' ? '#ff9100' : 
+                                     type === 'fixed' ? '#888' : '#00d4ff';
+                    html += `<div class="link-item" style="border-left-color: ${typeColor};">
+                        ${name} <span style="color: ${typeColor}; font-size: 0.85em;">[${type}]</span>
+                    </div>`;
+                });
+
+                urdfInfo.innerHTML = html;
+                log('Robot Description 로드됨', 'success');
+            } catch (e) {
+                urdfInfo.innerHTML = `<div style="color: #ff1744;">URDF 파싱 오류: ${e.message}</div>`;
+            }
+        }
+
+        // ============================================================
+        // Camera Controls
+        // ============================================================
+        function startAllCameras() {
+            const host = window.location.hostname || 'localhost';
+            document.getElementById('d405-feed').src = `http://${host}:8080/stream?topic=/camera/camera/color/image_rect_raw&type=mjpeg&quality=50`;
+            document.getElementById('yolo-feed').src = `http://${host}:8080/stream?topic=/yolo/detection_image&type=mjpeg&quality=50`;
+            document.getElementById('d455-feed').src = `http://${host}:8080/stream?topic=/d455/d455/color/image_raw&type=mjpeg&quality=50`;
+            log('모든 카메라 시작', 'info');
+        }
+
+        function stopAllCameras() {
+            document.getElementById('d405-feed').src = '';
+            document.getElementById('yolo-feed').src = '';
+            document.getElementById('d455-feed').src = '';
+            log('모든 카메라 정지', 'info');
+        }
+
+        // ============================================================
+        // Log
+        // ============================================================
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.insertBefore(entry, logDiv.firstChild);
+            while (logDiv.children.length > 30) logDiv.removeChild(logDiv.lastChild);
+        }
+
+        // ============================================================
+        // Init
+        // ============================================================
+        window.onload = () => { 
+            initJoystick(); 
+            log('초기화 완료', 'success'); 
+        };
+        window.onresize = initJoystick;
+    </script>
+</body>
+</html>

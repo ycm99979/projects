@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>md_motor_hardware</name>
+  <version>1.0.0</version>
+  <description>MD Motor Driver Hardware Interface for ros2_control</description>
+  <maintainer email="frlab@frlab.com">frlab</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- ROS2 Core -->
+  <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
+
+  <!-- ros2_control -->
+  <depend>hardware_interface</depend>
+  <depend>pluginlib</depend>
+  <depend>controller_manager</depend>
+
+  <!-- Serial Communication -->
+  <depend>serial</depend>
+
+  <!-- Messages -->
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+    <!-- pluginlib이 찾을 수 있도록 hardware_interface 플러그인 등록 -->
+    <hardware_interface plugin="${prefix}/md_hardware_plugin.xml"/>
+  </export>
+</package>
